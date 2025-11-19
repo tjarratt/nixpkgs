@@ -38,17 +38,27 @@ let
       pnpm
     ];
 
-    # Error: spawn /build/source/node_modules/.pnpm/sass-embedded-linux-x64@1.77.8/node_modules/sass-embedded-linux-x64/dart-sass/src/dart ENOENT
-    # Remove both node_modules/.pnpm/sass-embedded and node_modules/.pnpm/sass-embedded-linux-x64
+    # Error : spawn /build/source/node_modules/.pnpm/sass-embedded-linux-x64@1.77.8/node_modules/sass-embedded-linux-x64/dart-sass/src/dart ENOENT
+    # Solution : Remove both node_modules/.pnpm/sass-embedded and node_modules/.pnpm/sass-embedded-linux-x64
+    #
+    # Error :  Error: Failed to load native binding
+    # Solution : Prompt swc to build from source
     preBuild = ''
       rm -r node_modules/.pnpm/sass-embedded*
+
+      # remove all platform-specific native bindings and force wasm implementation
+      rm -rf node_modules/.pnpm/@swc+core*/node_modules/@swc/core-*
+      echo "module.exports = require('./loader.js');" > node_modules/.pnpm/@swc+core*/node_modules/@swc/core/binding.js
     '';
 
     buildPhase = ''
+      echo "STEP 1"
       runHook preBuild
 
+      echo "STEP 2"
       node --run package
 
+      echo "STEP 3"
       runHook postBuild
     '';
 
